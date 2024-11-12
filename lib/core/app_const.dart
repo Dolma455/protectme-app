@@ -1,0 +1,5 @@
+
+class Appconst {
+  Appconst._();
+ 
+}
