@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "455118079116",
+    "project_id": "protectme-dba92",
+    "storage_bucket": "protectme-dba92.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:455118079116:android:e9bb9c0b9ad028d34167a9",
+        "android_client_info": {
+          "package_name": "com.dolma.protectme"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAaijMTXc04bzfkR3Heb9ciWoKwZjFuje4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
