@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:protectmee/auth/presentation/screens/auth_screen.dart';
 
 import '../helpcenterr/screens/helpcenter_home_screen.dart';
 
@@ -10,7 +11,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'ProtectMe App',
      theme: ThemeData.dark(),
-      home: const HelpCenterHomeScreen(),
+      home: const AuthScreen(),
     );
   }
 }

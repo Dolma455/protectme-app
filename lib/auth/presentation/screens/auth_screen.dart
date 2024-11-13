@@ -536,16 +536,12 @@
 // }
 
 
-
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:protectmee/auth/data/models/user_model.dart';
 import '../../../utils/app_styles.dart';
-import '../../controller/register_user_controller.dart';
 import '../../controller/login_user_controller.dart';
 import '../../controller/register_user_controller.dart.dart';
-import '../../data/models/register_user_model.dart';
 import '../../data/models/login_user_model.dart';
 import '../../../admin/presentation/screens/admin_home_screen.dart';
 import '../../../user/screens/user_home_screen.dart';
@@ -709,7 +705,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                                     } else if (message.contains('Normal User')) {
                                       Navigator.pushReplacement(
                                         context,
-                                        MaterialPageRoute(builder: (context) => const UserHomeScreen()),
+                                        MaterialPageRoute(builder: (context) => const HomeScreen()),
                                       );
                                     } else if (message.contains('Police')) {
                                       Navigator.pushReplacement(

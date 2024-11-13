@@ -3,14 +3,14 @@ import '../data/models/login_user_model.dart';
 import '../data/repository/login_user_repository.dart';
 
 class LoginUserController extends StateNotifier<AsyncValue<String>> {
-  final AuthRepository authRepository;
+  final LoginUserRepository loginUserRepository;
 
-  LoginUserController({required this.authRepository}) : super(const AsyncValue.loading());
+  LoginUserController({required this.loginUserRepository}) : super(const AsyncValue.data(''));
 
   Future<String> loginUser(LoginUserModel loginModel) async {
     state = const AsyncValue.loading();
     try {
-      final message = await authRepository.loginUser(loginModel);
+      final message = await loginUserRepository.loginUser(loginModel);
       state = AsyncValue.data(message);
       return message;
     } catch (e) {
@@ -21,5 +21,5 @@ class LoginUserController extends StateNotifier<AsyncValue<String>> {
 }
 
 final loginUserNotifierProvider = StateNotifierProvider<LoginUserController, AsyncValue<String>>((ref) {
-  return LoginUserController(authRepository: ref.watch(authRepositoryProvider));
+  return LoginUserController(loginUserRepository: ref.watch(loginUserRepositoryProvider));
 });
