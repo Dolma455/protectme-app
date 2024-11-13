@@ -16,6 +16,7 @@ class RegisterUserDataSourceImpl implements RegisterUserDataSource {
     try {
       final result = await apiClient.request(
         path: '/registeruser',
+        method: 'POST',
         data: registerUserModel.toJson(),
       );
       return RegisterUserResponseModel.fromJson(result);

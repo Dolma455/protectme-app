@@ -14,7 +14,7 @@ class AdminDataSourceImpl implements AdminDataSource {
   @override
   Future<int> getTotalUsers() async {
     final result = await apiClient.request(
-      path: 'https://20c6-43-245-93-73.ngrok-free.app/users',
+      path: '/users',
     );
     if (result is List) {
       return result.length;
@@ -26,7 +26,7 @@ class AdminDataSourceImpl implements AdminDataSource {
   @override
   Future<int> getTotalReports() async {
     final result = await apiClient.request(
-      path: 'https://20c6-43-245-93-73.ngrok-free.app/getreports',
+      path: '/getreports',
     );
     if (result is List) {
       return result.length;

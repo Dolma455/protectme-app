@@ -14,7 +14,7 @@ class LoginUserDataSourceImpl implements LoginUserDataSource {
   @override
   Future<String> loginUser(LoginUserModel loginModel) async {
     final result = await apiClient.request(
-      path: 'https://b8d8-103-235-198-26.ngrok-free.app/login',
+      path: '/login',
       method: 'POST',
       data: loginModel.toJson(),
     );

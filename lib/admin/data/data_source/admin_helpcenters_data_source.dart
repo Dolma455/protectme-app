@@ -18,7 +18,7 @@ class HelpCenterDataSourceImpl implements HelpCenterDataSource {
   @override
   Future<List<HelpCenterModel>> getHelpCenters() async {
     final result = await apiClient.request(
-      path: 'https://20c6-43-245-93-73.ngrok-free.app/helpcenters',
+      path: 'https://cee7-43-245-93-169.ngrok-free.app/helpcenters',
     );
     if (result is List) {
       return result.map((e) => HelpCenterModel.fromJson(e as Map<String, dynamic>)).toList();
@@ -30,7 +30,7 @@ class HelpCenterDataSourceImpl implements HelpCenterDataSource {
   @override
   Future<String> addHelpCenter(HelpCenterModel helpCenter) async {
     final result = await apiClient.request(
-      path: 'https://20c6-43-245-93-73.ngrok-free.app/registerhelpcenter',
+      path: '/registerhelpcenter',
       method: 'POST',
       data: helpCenter.toJson(),
     );
@@ -40,7 +40,7 @@ class HelpCenterDataSourceImpl implements HelpCenterDataSource {
   @override
   Future<String> updateHelpCenter(String id, HelpCenterModel helpCenter) async {
     final result = await apiClient.request(
-      path: 'https://20c6-43-245-93-73.ngrok-free.app/helpcenter/$id',
+      path: '/helpcenter/$id',
       method: 'PUT',
       data: helpCenter.toJson(),
     );
@@ -50,7 +50,7 @@ class HelpCenterDataSourceImpl implements HelpCenterDataSource {
   @override
   Future<String> deleteHelpCenter(String id) async {
     final result = await apiClient.request(
-      path: 'https://20c6-43-245-93-73.ngrok-free.app/helpcenter/$id',
+      path: '/helpcenter/$id',
       method: 'DELETE',
     );
     return result['message'];

@@ -17,7 +17,7 @@ class AdminReportDataSourceImpl implements AdminReportDataSource {
   Future<List<AdminGetReportModel>> getReports() async {
     try {
       final result = await apiClient.request(
-        path: 'https://20c6-43-245-93-73.ngrok-free.app/getreports',
+        path: '/getreports',
       );
        log('API Response: $result'); 
 

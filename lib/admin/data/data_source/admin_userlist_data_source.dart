@@ -18,7 +18,7 @@ class UserDataSourceImpl implements UserDataSource {
   @override
   Future<List<UserModel>> getUsers() async {
     final result = await apiClient.request(
-      path: 'https://20c6-43-245-93-73.ngrok-free.app/users',
+      path: 'https://cee7-43-245-93-169.ngrok-free.app/users',
     );
     print('API Response: $result'); // Add logging to check the API response
     if (result is List) {
@@ -31,7 +31,7 @@ class UserDataSourceImpl implements UserDataSource {
   @override
   Future<String> addUser(UserModel user) async {
     final result = await apiClient.request(
-      path: 'https://20c6-43-245-93-73.ngrok-free.app/registeruser',
+      path: '/registeruser',
       method: 'POST',
       data: user.toJson(),
     );
@@ -41,7 +41,7 @@ class UserDataSourceImpl implements UserDataSource {
   @override
   Future<String> updateUser(String id, UserModel user) async {
     final result = await apiClient.request(
-      path: 'https://20c6-43-245-93-73.ngrok-free.app/user/$id',
+      path: '/user/$id',
       method: 'PUT',
       data: user.toJson(),
     );
@@ -51,7 +51,7 @@ class UserDataSourceImpl implements UserDataSource {
   @override
   Future<String> deleteUser(String id) async {
     final result = await apiClient.request(
-      path: 'https://20c6-43-245-93-73.ngrok-free.app/user/$id',
+      path: '/user/$id',
       method: 'DELETE',
     );
     return result['message'];
