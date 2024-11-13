@@ -15,7 +15,7 @@ class UserReportsDataSourceImpl implements UserReportsDataSource {
   @override
   Future<List<ReportModel>> getUserReports(int userId) async {
     final result = await apiClient.request(
-      path: 'https://20c6-43-245-93-73.ngrok-free.app/getreports/$userId',
+      path: '/getreports/$userId',
     );
     if (result is List) {
       return result.map((e) => ReportModel.fromJson(e as Map<String, dynamic>)).toList();

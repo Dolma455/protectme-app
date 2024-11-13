@@ -15,7 +15,7 @@ class HelpCenterHomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HelpCenterHomeScreen> {
   int _selectedIndex = 0;
-  final String emergencyContactNumber = '9818853110'; // Change this to your emergency contact number
+ 
 
   void _onItemTapped(int index) {
     setState(() {
