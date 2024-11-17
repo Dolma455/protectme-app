@@ -1,19 +1,18 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import '../data_source/admin_userlist_data_source.dart';
 import '../models/admin_userlist_model.dart';
 
-abstract class UserRepository {
+abstract class AdminUserRepository {
   Future<List<UserModel>> getUsers();
-  Future<String> addUser(UserModel user);
-  Future<String> updateUser(String id, UserModel user);
-  Future<String> deleteUser(String id);
+  Future<void> addUser(UserModel user);
+  Future<void> updateUser(int userId, UserModel user);
+  Future<void> deleteUser(int userId);
 }
 
-class UserRepositoryImpl implements UserRepository {
-  final UserDataSource dataSource;
+class AdminUserRepositoryImpl implements AdminUserRepository {
+  final AdminUserDataSource dataSource;
 
-  UserRepositoryImpl({required this.dataSource});
+  AdminUserRepositoryImpl({required this.dataSource});
 
   @override
   Future<List<UserModel>> getUsers() async {
@@ -21,21 +20,23 @@ class UserRepositoryImpl implements UserRepository {
   }
 
   @override
-  Future<String> addUser(UserModel user) async {
-    return await dataSource.addUser(user);
+  Future<void> addUser(UserModel user) async {
+    await dataSource.addUser(user);
   }
 
   @override
-  Future<String> updateUser(String id, UserModel user) async {
-    return await dataSource.updateUser(id, user);
+  Future<void> updateUser(int userId, UserModel user) async {
+    await dataSource.updateUser(userId, user);
   }
 
   @override
-  Future<String> deleteUser(String id) async {
-    return await dataSource.deleteUser(id);
+  Future<void> deleteUser(int userId) async {
+    await dataSource.deleteUser(userId);
   }
 }
 
-final userRepositoryProvider = Provider<UserRepository>((ref) {
-  return UserRepositoryImpl(dataSource: ref.watch(userDataSourceProvider));
+final adminUserRepositoryProvider = Provider<AdminUserRepository>((ref) {
+  return AdminUserRepositoryImpl(
+    dataSource: ref.watch(adminUserDataSourceProvider),
+  );
 });

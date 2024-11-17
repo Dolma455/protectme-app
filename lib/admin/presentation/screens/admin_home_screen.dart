@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:protectmee/auth/presentation/screens/profile.dart';
 import '../../../utils/app_styles.dart';
 import '../widgets/admin_helpcenters.dart';
 import '../widgets/admin_home.dart';
@@ -85,9 +86,9 @@ class _HomeScreenState extends State<AdminHomeScreen> {
       case 1:
         return  const AdminHelpCenters();
       case 2:
-        return   AdminUsers();
+        return   const AdminUsers();
       case 3:
-       // return const AdminProfile();
+        return const ProfileWidget();
       default:
         return const Center(child: Text('Unknown Index'));
     }

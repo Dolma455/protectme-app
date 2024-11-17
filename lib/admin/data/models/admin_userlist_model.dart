@@ -1,5 +1,5 @@
 class UserModel {
-  final String? id;
+  final int id;
   final String fullName;
   final String email;
   final String phoneNumber;
@@ -7,7 +7,7 @@ class UserModel {
   final String? password;
 
   UserModel({
-    this.id,
+    required this.id,
     required this.fullName,
     required this.email,
     required this.phoneNumber,
@@ -17,7 +17,7 @@ class UserModel {
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
-      id: json['id']?.toString(), // Convert id to String if it exists
+      id: json['id'] as int, 
       fullName: json['fullName'] ?? '',
       email: json['email'] ?? '',
       phoneNumber: json['phoneNumber'] ?? '',

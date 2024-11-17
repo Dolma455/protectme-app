@@ -1,20 +1,18 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data_source/admin_helpcenters_data_source.dart';
-
 import '../models/admin_helpcenter_model.dart';
 
-
-abstract class HelpCenterRepository {
+abstract class AdminHelpCenterRepository {
   Future<List<HelpCenterModel>> getHelpCenters();
-  Future<String> addHelpCenter(HelpCenterModel helpCenter);
-  Future<String> updateHelpCenter(String id, HelpCenterModel helpCenter);
-  Future<String> deleteHelpCenter(String id);
+  Future<void> addHelpCenter(HelpCenterModel helpCenter);
+  Future<void> updateHelpCenter(int helpCenterId, HelpCenterModel helpCenter);
+  Future<void> deleteHelpCenter(int helpCenterId);
 }
 
-class HelpCenterRepositoryImpl implements HelpCenterRepository {
-  final HelpCenterDataSource dataSource;
+class AdminHelpCenterRepositoryImpl implements AdminHelpCenterRepository {
+  final AdminHelpCenterDataSource dataSource;
 
-  HelpCenterRepositoryImpl({required this.dataSource});
+  AdminHelpCenterRepositoryImpl({required this.dataSource});
 
   @override
   Future<List<HelpCenterModel>> getHelpCenters() async {
@@ -22,21 +20,23 @@ class HelpCenterRepositoryImpl implements HelpCenterRepository {
   }
 
   @override
-  Future<String> addHelpCenter(HelpCenterModel helpCenter) async {
-    return await dataSource.addHelpCenter(helpCenter);
+  Future<void> addHelpCenter(HelpCenterModel helpCenter) async {
+    await dataSource.addHelpCenter(helpCenter);
   }
 
   @override
-  Future<String> updateHelpCenter(String id, HelpCenterModel helpCenter) async {
-    return await dataSource.updateHelpCenter(id, helpCenter);
+  Future<void> updateHelpCenter(int helpCenterId, HelpCenterModel helpCenter) async {
+    await dataSource.updateHelpCenter(helpCenterId, helpCenter);
   }
 
   @override
-  Future<String> deleteHelpCenter(String id) async {
-    return await dataSource.deleteHelpCenter(id);
+  Future<void> deleteHelpCenter(int helpCenterId) async {
+    await dataSource.deleteHelpCenter(helpCenterId);
   }
 }
 
-final helpCenterRepositoryProvider = Provider<HelpCenterRepository>((ref) {
-  return HelpCenterRepositoryImpl(dataSource: ref.watch(helpCenterDataSourceProvider));
+final adminHelpCenterRepositoryProvider = Provider<AdminHelpCenterRepository>((ref) {
+  return AdminHelpCenterRepositoryImpl(
+    dataSource: ref.watch(adminHelpCenterDataSourceProvider),
+  );
 });

@@ -2,23 +2,23 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:protectmee/core/api_client.dart';
 import '../models/admin_helpcenter_model.dart';
 
-
-abstract class HelpCenterDataSource {
+abstract class AdminHelpCenterDataSource {
   Future<List<HelpCenterModel>> getHelpCenters();
-  Future<String> addHelpCenter(HelpCenterModel helpCenter);
-  Future<String> updateHelpCenter(String id, HelpCenterModel helpCenter);
-  Future<String> deleteHelpCenter(String id);
+  Future<void> addHelpCenter(HelpCenterModel helpCenter);
+  Future<void> updateHelpCenter(int helpCenterId, HelpCenterModel helpCenter);
+  Future<void> deleteHelpCenter(int helpCenterId);
 }
 
-class HelpCenterDataSourceImpl implements HelpCenterDataSource {
+class AdminHelpCenterDataSourceImpl implements AdminHelpCenterDataSource {
   final ApiClient apiClient;
 
-  HelpCenterDataSourceImpl({required this.apiClient});
+  AdminHelpCenterDataSourceImpl({required this.apiClient});
 
   @override
   Future<List<HelpCenterModel>> getHelpCenters() async {
     final result = await apiClient.request(
-      path: 'https://cee7-43-245-93-169.ngrok-free.app/helpcenters',
+      path: '/helpcenters',
+      method: 'GET',
     );
     if (result is List) {
       return result.map((e) => HelpCenterModel.fromJson(e as Map<String, dynamic>)).toList();
@@ -28,37 +28,34 @@ class HelpCenterDataSourceImpl implements HelpCenterDataSource {
   }
 
   @override
-  Future<String> addHelpCenter(HelpCenterModel helpCenter) async {
-    final result = await apiClient.request(
+  Future<void> addHelpCenter(HelpCenterModel helpCenter) async {
+    await apiClient.request(
       path: '/registerhelpcenter',
       method: 'POST',
       data: helpCenter.toJson(),
     );
-    return result['message'];
   }
 
   @override
-  Future<String> updateHelpCenter(String id, HelpCenterModel helpCenter) async {
-    final result = await apiClient.request(
-      path: '/helpcenter/$id',
+  Future<void> updateHelpCenter(int helpCenterId, HelpCenterModel helpCenter) async {
+    await apiClient.request(
+      path: '/helpcenter/$helpCenterId',
       method: 'PUT',
       data: helpCenter.toJson(),
     );
-    return result['message'];
   }
 
   @override
-  Future<String> deleteHelpCenter(String id) async {
-    final result = await apiClient.request(
-      path: '/helpcenter/$id',
+  Future<void> deleteHelpCenter(int helpCenterId) async {
+    await apiClient.request(
+      path: '/helpcenter/$helpCenterId',
       method: 'DELETE',
     );
-    return result['message'];
   }
 }
 
-final helpCenterDataSourceProvider = Provider<HelpCenterDataSource>((ref) {
-  return HelpCenterDataSourceImpl(
+final adminHelpCenterDataSourceProvider = Provider<AdminHelpCenterDataSource>((ref) {
+  return AdminHelpCenterDataSourceImpl(
     apiClient: ref.watch(apiClientProvider),
   );
 });

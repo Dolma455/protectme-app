@@ -2,51 +2,53 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/models/admin_helpcenter_model.dart';
 import '../data/repository/admin_helpcenters_repository.dart';
 
-class HelpCenterController extends StateNotifier<AsyncValue<List<HelpCenterModel>>> {
-  final HelpCenterRepository repository;
 
-  HelpCenterController({required this.repository}) : super(const AsyncValue.loading());
+class AdminHelpCenterController extends StateNotifier<AsyncValue<List<HelpCenterModel>>> {
+  final AdminHelpCenterRepository repository;
+
+  AdminHelpCenterController({required this.repository}) : super(const AsyncValue.loading());
 
   Future<void> getHelpCenters() async {
+    state = const AsyncValue.loading();
     try {
       final helpCenters = await repository.getHelpCenters();
       state = AsyncValue.data(helpCenters);
     } catch (e) {
-     // state = AsyncValue.error(e);
+    //  state = AsyncValue.error(e);
     }
   }
 
   Future<String> addHelpCenter(HelpCenterModel helpCenter) async {
     try {
-      final message = await repository.addHelpCenter(helpCenter);
+      await repository.addHelpCenter(helpCenter);
       await getHelpCenters(); // Refresh the help center list
-      return message;
+      return 'Help Center added successfully';
     } catch (e) {
-      throw e;
+      return 'Error adding help center: $e';
     }
   }
 
-  Future<String> updateHelpCenter(String id, HelpCenterModel helpCenter) async {
+  Future<String> updateHelpCenter(int helpCenterId, HelpCenterModel helpCenter) async {
     try {
-      final message = await repository.updateHelpCenter(id, helpCenter);
+      await repository.updateHelpCenter(helpCenterId, helpCenter);
       await getHelpCenters(); // Refresh the help center list
-      return message;
+      return 'Help Center updated successfully';
     } catch (e) {
-      throw e;
+      return 'Error updating help center: $e';
     }
   }
 
-  Future<String> deleteHelpCenter(String id) async {
+  Future<String> deleteHelpCenter(int helpCenterId) async {
     try {
-      final message = await repository.deleteHelpCenter(id);
+      await repository.deleteHelpCenter(helpCenterId);
       await getHelpCenters(); // Refresh the help center list
-      return message;
+      return 'Help Center deleted successfully';
     } catch (e) {
-      throw e;
+      return 'Error deleting help center: $e';
     }
   }
 }
 
-final helpCenterControllerProvider = StateNotifierProvider<HelpCenterController, AsyncValue<List<HelpCenterModel>>>((ref) {
-  return HelpCenterController(repository: ref.watch(helpCenterRepositoryProvider));
+final adminHelpCenterControllerProvider = StateNotifierProvider<AdminHelpCenterController, AsyncValue<List<HelpCenterModel>>>((ref) {
+  return AdminHelpCenterController(repository: ref.watch(adminHelpCenterRepositoryProvider));
 });

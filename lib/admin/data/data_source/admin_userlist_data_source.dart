@@ -1,26 +1,25 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:protectmee/admin/data/models/admin_userlist_model.dart';
 import 'package:protectmee/core/api_client.dart';
+import '../models/admin_userlist_model.dart';
 
-
-abstract class UserDataSource {
+abstract class AdminUserDataSource {
   Future<List<UserModel>> getUsers();
-  Future<String> addUser(UserModel user);
-  Future<String> updateUser(String id, UserModel user);
-  Future<String> deleteUser(String id);
+  Future<void> addUser(UserModel user);
+  Future<void> updateUser(int userId, UserModel user);
+  Future<void> deleteUser(int userId);
 }
 
-class UserDataSourceImpl implements UserDataSource {
+class AdminUserDataSourceImpl implements AdminUserDataSource {
   final ApiClient apiClient;
 
-  UserDataSourceImpl({required this.apiClient});
+  AdminUserDataSourceImpl({required this.apiClient});
 
   @override
   Future<List<UserModel>> getUsers() async {
     final result = await apiClient.request(
-      path: 'https://cee7-43-245-93-169.ngrok-free.app/users',
+      path: '/users',
+      method: 'GET',
     );
-    print('API Response: $result'); // Add logging to check the API response
     if (result is List) {
       return result.map((e) => UserModel.fromJson(e as Map<String, dynamic>)).toList();
     } else {
@@ -29,37 +28,34 @@ class UserDataSourceImpl implements UserDataSource {
   }
 
   @override
-  Future<String> addUser(UserModel user) async {
-    final result = await apiClient.request(
+  Future<void> addUser(UserModel user) async {
+    await apiClient.request(
       path: '/registeruser',
       method: 'POST',
       data: user.toJson(),
     );
-    return result['message'];
   }
 
   @override
-  Future<String> updateUser(String id, UserModel user) async {
-    final result = await apiClient.request(
-      path: '/user/$id',
+  Future<void> updateUser(int userId, UserModel user) async {
+    await apiClient.request(
+      path: '/user/$userId',
       method: 'PUT',
       data: user.toJson(),
     );
-    return result['message'];
   }
 
   @override
-  Future<String> deleteUser(String id) async {
-    final result = await apiClient.request(
-      path: '/user/$id',
+  Future<void> deleteUser(int userId) async {
+    await apiClient.request(
+      path: '/user/$userId',
       method: 'DELETE',
     );
-    return result['message'];
   }
 }
 
-final userDataSourceProvider = Provider<UserDataSource>((ref) {
-  return UserDataSourceImpl(
+final adminUserDataSourceProvider = Provider<AdminUserDataSource>((ref) {
+  return AdminUserDataSourceImpl(
     apiClient: ref.watch(apiClientProvider),
   );
 });

@@ -9,6 +9,7 @@ class AdminGetReportModel {
   final String address;
   final String policeStation;
   final List<String> evidenceFilePath;
+  final String status; // Add the status field
 
   AdminGetReportModel({
     required this.id,
@@ -21,6 +22,7 @@ class AdminGetReportModel {
     required this.address,
     required this.policeStation,
     required this.evidenceFilePath,
+    required this.status, // Add the status field
   });
 
   factory AdminGetReportModel.fromJson(Map<String, dynamic> json) {
@@ -35,6 +37,23 @@ class AdminGetReportModel {
       address: json['address'],
       policeStation: json['policeStation'],
       evidenceFilePath: List<String>.from(json['evidenceFilePath']),
+      status: json['status'], // Add the status field
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'userId': userId,
+      'fullName': fullName,
+      'mobileNumber': mobileNumber,
+      'incidentType': incidentType,
+      'dateTime': dateTime.toIso8601String(),
+      'description': description,
+      'address': address,
+      'policeStation': policeStation,
+      'evidenceFilePath': evidenceFilePath,
+      'status': status, // Add the status field
+    };
   }
 }
