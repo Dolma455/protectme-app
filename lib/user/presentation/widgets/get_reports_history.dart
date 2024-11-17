@@ -1,64 +1,59 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:protectmee/utils/app_styles.dart';
-import '../../controller/get_reports_controller.dart';
-import '../../data/models/get_reports_model.dart';
+import 'package:protectmee/helpcenterr/data/model/report_model.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:protectmee/core/api_client.dart';
 
 
-class UserReports extends ConsumerWidget {
-  const UserReports({super.key});
+class UserReportHistoryWidget extends ConsumerStatefulWidget {
+  const UserReportHistoryWidget({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    const userId = 0; // Replace with actual user ID
-    final reportState = ref.watch(reportNotifierProvider);
+  _UserReportHistoryWidgetState createState() => _UserReportHistoryWidgetState();
+}
 
-    // Fetch reports when the widget is first built
-    ref.read(reportNotifierProvider.notifier).getReports(userId);
+class _UserReportHistoryWidgetState extends ConsumerState<UserReportHistoryWidget> {
+  int userId = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserId();
+  }
+
+  Future<void> _loadUserId() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      userId = prefs.getInt('userId') ?? 0;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final reportsState = ref.watch(reportsControllerProvider(userId));
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('User Reports'),
+        title: const Text('Report History'),
       ),
-      body: reportState.when(
+      body: reportsState.when(
         data: (reports) {
-          print('Displaying Reports: $reports'); // Add logging to check the displayed reports
           return ListView.builder(
             itemCount: reports.length,
             itemBuilder: (context, index) {
               final report = reports[index];
-              return Card(
-                color: darkBlueColor.withOpacity(0.6),
-                margin: const EdgeInsets.symmetric(vertical: 8),
-                child: ListTile(
-                  title: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(report.incidentType, style: const TextStyle(fontWeight: FontWeight.bold)),
-                      Text(report.description, style: TextStyle(color: Colors.grey[600])),
-                    ],
-                  ),
-                  subtitle: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text('${report.dateTime.toLocal()}'.split(' ')[0]), // Display date
-                      Text(report.policeStation),
-                    ],
-                  ),
-                  trailing: const Icon(Icons.arrow_forward_ios, size: 16), // Right arrow icon
-                  onTap: () {
-                    _showReportDetails(context, report);
-                  },
-                ),
+              return ListTile(
+                title: Text(report.incidentType),
+                subtitle: Text(report.dateTime.toString()),
+                onTap: () {
+                  _showReportDetails(context, report);
+                },
               );
             },
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stackTrace) {
-          print('Error Displaying Reports: $error'); // Add logging to check the error
-          return Center(child: Text('Error: $error'));
-        },
+        error: (error, stackTrace) => Center(child: Text('Error: $error')),
       ),
     );
   }
@@ -66,30 +61,75 @@ class UserReports extends ConsumerWidget {
   void _showReportDetails(BuildContext context, ReportModel report) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(report.incidentType),
-        content: SingleChildScrollView(
-          child: ListBody(
-            children: <Widget>[
-              Text('Full Name: ${report.fullName}'),
-              Text('Mobile Number: ${report.mobileNumber}'),
-              Text('Description: ${report.description}'),
-              Text('Date: ${report.dateTime.toLocal()}'),
-              Text('Address: ${report.address}'),
-              Text('Police Station: ${report.policeStation}'),
-              Text('Evidence: ${report.evidenceFilePath.join(', ')}'),
-            ],
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(report.incidentType),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text('Date: ${report.dateTime}'),
+                const SizedBox(height: 8),
+                Text('Description: ${report.description}'),
+                const SizedBox(height: 8),
+                Text('Details: ${report.description}'),
+              ],
+            ),
           ),
-        ),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text('Close'),
-          ),
-        ],
-      ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Close'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
     );
+  }
+}
+
+final reportsControllerProvider = StateNotifierProvider.family<ReportsController, AsyncValue<List<ReportModel>>, int>((ref, userId) {
+  return ReportsController(reportsRepository: ref.watch(reportsRepositoryProvider), userId: userId);
+});
+
+class ReportsController extends StateNotifier<AsyncValue<List<ReportModel>>> {
+  final ReportsRepository reportsRepository;
+  final int userId;
+
+  ReportsController({required this.reportsRepository, required this.userId}) : super(const AsyncValue.loading()) {
+    _fetchReports();
+  }
+
+  Future<void> _fetchReports() async {
+    try {
+      final reports = await reportsRepository.getReportsByUserId(userId);
+      state = AsyncValue.data(reports);
+    } catch (e) {
+      state = AsyncValue.error(e, StackTrace.current);
+    }
+  }
+}
+
+final reportsRepositoryProvider = Provider<ReportsRepository>((ref) {
+  return ReportsRepository(apiClient: ref.watch(apiClientProvider));
+});
+
+class ReportsRepository {
+  final ApiClient apiClient;
+
+  ReportsRepository({required this.apiClient});
+
+  Future<List<ReportModel>> getReportsByUserId(int userId) async {
+    final response = await apiClient.request(
+      path: '/getreports/user/$userId',
+      method: 'GET',
+    );
+
+    if (response is List) {
+      return response.map((json) => ReportModel.fromJson(json)).toList();
+    } else {
+      throw Exception('Unexpected response format');
+    }
   }
 }
