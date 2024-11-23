@@ -14,7 +14,7 @@ class AdminHelpCenterController extends StateNotifier<AsyncValue<List<HelpCenter
       final helpCenters = await repository.getHelpCenters();
       state = AsyncValue.data(helpCenters);
     } catch (e) {
-    //  state = AsyncValue.error(e);
+      state = AsyncValue.error(e, StackTrace.current);
     }
   }
 

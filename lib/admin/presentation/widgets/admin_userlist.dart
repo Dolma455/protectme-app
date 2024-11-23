@@ -15,9 +15,14 @@ class AdminUsers extends ConsumerWidget {
     ref.read(adminUserListControllerProvider.notifier).getUsers();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Users')),
+      appBar: AppBar(
+        title: const Text('Users'),
+      ),
       body: userState.when(
         data: (users) {
+          // Sort users using Quick Sort
+          _quickSort(users, 0, users.length - 1);
+
           return ListView.builder(
             itemCount: users.length,
             itemBuilder: (context, index) {
@@ -28,8 +33,13 @@ class AdminUsers extends ConsumerWidget {
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: ListTile(
-                    title: Text('${user.id}: ${user.fullName}', style: const TextStyle(fontWeight: FontWeight.bold)),
-                    subtitle: Text(user.address),
+                    title: Text(user.fullName, style: const TextStyle(fontWeight: FontWeight.bold)),
+                    subtitle: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(user.phoneNumber),
+                      ],
+                    ),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -72,6 +82,35 @@ class AdminUsers extends ConsumerWidget {
     );
   }
 
+  // Quick Sort Algorithm
+  void _quickSort(List<UserModel> list, int low, int high) {
+    if (low < high) {
+      final pi = _partition(list, low, high);
+      _quickSort(list, low, pi - 1);
+      _quickSort(list, pi + 1, high);
+    }
+  }
+
+  int _partition(List<UserModel> list, int low, int high) {
+    final pivot = list[high].fullName.toLowerCase();
+    int i = low - 1;
+
+    for (int j = low; j < high; j++) {
+      if (list[j].fullName.toLowerCase().compareTo(pivot) < 0) {
+        i++;
+        final temp = list[i];
+        list[i] = list[j];
+        list[j] = temp;
+      }
+    }
+
+    final temp = list[i + 1];
+    list[i + 1] = list[high];
+    list[high] = temp;
+
+    return i + 1;
+  }
+
   // Show User Details Dialog
   void _showUserDetails(BuildContext context, UserModel user) {
     showDialog(
@@ -81,6 +120,7 @@ class AdminUsers extends ConsumerWidget {
         content: SingleChildScrollView(
           child: ListBody(
             children: <Widget>[
+              Text('Full Name: ${user.fullName}'),
               Text('Phone Number: ${user.phoneNumber}'),
               Text('Email: ${user.email}'),
               Text('Address: ${user.address}'),

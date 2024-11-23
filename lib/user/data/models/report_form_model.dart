@@ -1,3 +1,5 @@
+import 'dart:io';
+
 class ReportFormModel {
   final int id;
   final int userId;
@@ -8,7 +10,8 @@ class ReportFormModel {
   final String description;
   final String address;
   final String policeStation;
-  final List<String> evidenceFilePath;
+  final List<File> evidenceFilePath;
+  final String status;
 
   ReportFormModel({
     required this.id,
@@ -21,6 +24,7 @@ class ReportFormModel {
     required this.address,
     required this.policeStation,
     required this.evidenceFilePath,
+    required this.status,
   });
 
   Map<String, dynamic> toJson() {
@@ -34,34 +38,8 @@ class ReportFormModel {
       'description': description,
       'address': address,
       'policeStation': policeStation,
-      'evidenceFilePath': evidenceFilePath,
+      'evidenceFilePath': evidenceFilePath.map((file) => file.path).toList(),
+      'status': status,
     };
-  }
-
-  factory ReportFormModel.fromJson(Map<String, dynamic> json) {
-    return ReportFormModel(
-      id: json['id'],
-      userId: json['userId'],
-      fullName: json['fullName'],
-      mobileNumber: json['mobileNumber'],
-      incidentType: json['incidentType'],
-      dateTime: DateTime.parse(json['dateTime']),
-      description: json['description'],
-      address: json['address'],
-      policeStation: json['policeStation'],
-      evidenceFilePath: List<String>.from(json['evidenceFilePath']),
-    );
-  }
-}
-
-class ReportFormResponseModel {
-  final String message;
-
-  ReportFormResponseModel({required this.message});
-
-  factory ReportFormResponseModel.fromJson(Map<String, dynamic> json) {
-    return ReportFormResponseModel(
-      message: json['message'],
-    );
   }
 }

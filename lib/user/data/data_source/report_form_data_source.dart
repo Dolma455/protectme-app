@@ -1,11 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:protectmee/core/api_client.dart';
-
 import '../models/report_form_model.dart';
 
-
 abstract class ReportDataSource {
-  Future<ReportFormResponseModel> postReport(ReportFormModel reportModel);
+  Future<String> postReport(ReportFormModel report);
 }
 
 class ReportDataSourceImpl implements ReportDataSource {
@@ -14,17 +12,16 @@ class ReportDataSourceImpl implements ReportDataSource {
   ReportDataSourceImpl({required this.apiClient});
 
   @override
-  Future<ReportFormResponseModel> postReport(ReportFormModel reportModel) async {
-    try {
-      final result = await apiClient.request(
-        path: '/postreport',
-        method: 'POST',
-        data: reportModel.toJson(),
-      );
-      return ReportFormResponseModel.fromJson(result);
-    } catch (e) {
-      print('Error in postReport: $e');
-      rethrow;
+  Future<String> postReport(ReportFormModel report) async {
+    final result = await apiClient.request(
+      path: '/createreport',
+      method: 'POST',
+      data: report.toJson(),
+    );
+    if (result is Map<String, dynamic> && result['message'] != null) {
+      return result['message'];
+    } else {
+      throw Exception('Unexpected API response format');
     }
   }
 }

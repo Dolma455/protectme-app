@@ -1,25 +1,45 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../data/models/login_user_model.dart';
-import '../data/repository/login_user_repository.dart';
+import 'package:protectmee/core/api_client.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class LoginUserController extends StateNotifier<AsyncValue<String>> {
-  final LoginUserRepository loginUserRepository;
+class LoginController extends StateNotifier<AsyncValue<void>> {
+  final ApiClient apiClient;
 
-  LoginUserController({required this.loginUserRepository}) : super(const AsyncValue.data(''));
+  LoginController({required this.apiClient}) : super(const AsyncValue.data(null));
 
-  Future<String> loginUser(LoginUserModel loginModel) async {
-    state = const AsyncValue.loading();
+  Future<String> login(String email, String password) async {
     try {
-      final message = await loginUserRepository.loginUser(loginModel);
-      state = AsyncValue.data(message);
-      return message;
+      state = const AsyncValue.loading();
+      final response = await apiClient.request(
+        path: '/login',
+        method: 'POST',
+        data: {
+          'email': email,
+          'password': password,
+        },
+      );
+
+      print('Login response: $response'); // Log the response
+
+      if (response is Map<String, dynamic> && response.containsKey('message')) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('email', email); // Store the email in SharedPreferences
+        print('Stored email: $email'); // Log the stored email
+        state = const AsyncValue.data(null);
+        
+        return response['message']; // Return the message containing the user role
+      } else {
+        state = AsyncValue.error('Unexpected response format', StackTrace.current);
+        return 'Unexpected response format';
+      }
     } catch (e) {
-      //state = AsyncValue.error(e);
-      return e.toString();
+      print('Login error: $e'); // Log the error
+      state = AsyncValue.error(e, StackTrace.current);
+      return 'Error: $e';
     }
   }
 }
 
-final loginUserNotifierProvider = StateNotifierProvider<LoginUserController, AsyncValue<String>>((ref) {
-  return LoginUserController(loginUserRepository: ref.watch(loginUserRepositoryProvider));
+final loginControllerProvider = StateNotifierProvider<LoginController, AsyncValue<void>>((ref) {
+  return LoginController(apiClient: ref.watch(apiClientProvider));
 });

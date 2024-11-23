@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:protectmee/helpcenterr/data/model/report_model.dart';
+import 'package:protectmee/utils/app_styles.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:protectmee/core/api_client.dart';
-
 
 class UserReportHistoryWidget extends ConsumerStatefulWidget {
   const UserReportHistoryWidget({super.key});
@@ -32,29 +32,45 @@ class _UserReportHistoryWidgetState extends ConsumerState<UserReportHistoryWidge
   Widget build(BuildContext context) {
     final reportsState = ref.watch(reportsControllerProvider(userId));
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Report History'),
-      ),
-      body: reportsState.when(
-        data: (reports) {
-          return ListView.builder(
-            itemCount: reports.length,
-            itemBuilder: (context, index) {
-              final report = reports[index];
-              return ListTile(
-                title: Text(report.incidentType),
-                subtitle: Text(report.dateTime.toString()),
+    return reportsState.when(
+      data: (reports) {
+        // Apply Quick Sort to reports
+        quickSort(reports, 0, reports.length - 1);
+
+        return ListView.builder(
+          itemCount: reports.length,
+          itemBuilder: (context, index) {
+            final report = reports[index];
+            return Card(
+              color: darkBlueColor.withOpacity(0.6),
+              margin: const EdgeInsets.symmetric(vertical: 8),
+              child: ListTile(
+                title: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(report.fullName, style: const TextStyle(fontWeight: FontWeight.bold)),
+                    Text(report.incidentType, style: TextStyle(color: Colors.grey[600])),
+                    Text(report.policeStation, style: TextStyle(color: Colors.grey[600])),
+                  ],
+                ),
+                subtitle: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('${report.dateTime.toLocal()}'.split(' ')[0]), // Display date
+                    Text(report.policeStation),
+                  ],
+                ),
+                trailing: const Icon(Icons.arrow_forward_ios, size: 16), // Right arrow icon
                 onTap: () {
                   _showReportDetails(context, report);
                 },
-              );
-            },
-          );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stackTrace) => Center(child: Text('Error: $error')),
-      ),
+              ),
+            );
+          },
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, stackTrace) => Center(child: Text('Error: $error')),
     );
   }
 
@@ -67,11 +83,20 @@ class _UserReportHistoryWidgetState extends ConsumerState<UserReportHistoryWidge
           content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
+                Text('Email: ${report.incidentType}'),
                 Text('Date: ${report.dateTime}'),
                 const SizedBox(height: 8),
                 Text('Description: ${report.description}'),
                 const SizedBox(height: 8),
-                Text('Details: ${report.description}'),
+                Text('Address: ${report.address}'),
+                const SizedBox(height: 8),
+                Text('Police Station: ${report.policeStation}'),
+                const SizedBox(height: 8),
+                const Text('Evidence:'),
+                const SizedBox(height: 8),
+                Image.asset('assets/e.jpg', width: 80, height: 80, fit: BoxFit.cover),
+                const SizedBox(height: 8),
+                Text('Status: ${report.status}'),
               ],
             ),
           ),
@@ -86,6 +111,36 @@ class _UserReportHistoryWidgetState extends ConsumerState<UserReportHistoryWidge
         );
       },
     );
+  }
+
+  // Quick Sort algorithm to sort the reports based on dateTime
+  void quickSort(List<ReportModel> reports, int low, int high) {
+    if (low < high) {
+      int pi = _partition(reports, low, high);
+      quickSort(reports, low, pi - 1);  // Before pi
+      quickSort(reports, pi + 1, high); // After pi
+    }
+  }
+
+  int _partition(List<ReportModel> reports, int low, int high) {
+    DateTime pivot = reports[high].dateTime; // Using dateTime as pivot
+    int i = (low - 1);
+
+    for (int j = low; j < high; j++) {
+      // If current report's dateTime is smaller than the pivot
+      if (reports[j].dateTime.isBefore(pivot)) {
+        i++;
+        _swap(reports, i, j);
+      }
+    }
+    _swap(reports, i + 1, high);
+    return i + 1;
+  }
+
+  void _swap(List<ReportModel> reports, int i, int j) {
+    final temp = reports[i];
+    reports[i] = reports[j];
+    reports[j] = temp;
   }
 }
 

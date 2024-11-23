@@ -58,7 +58,7 @@ class _HomeScreenState extends State<AdminHomeScreen> {
             label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.report_outlined),
+            icon: Icon(Icons.local_police_outlined),
             label: 'Help Centers',
           ),
           BottomNavigationBarItem(
@@ -82,13 +82,13 @@ class _HomeScreenState extends State<AdminHomeScreen> {
   Widget _buildContent() {
     switch (_selectedIndex) {
       case 0:
-       return  const AdminHome();
+       return  const AdminsHome();
       case 1:
         return  const AdminHelpCenters();
       case 2:
         return   const AdminUsers();
       case 3:
-        return const ProfileWidget();
+        return const Profile();
       default:
         return const Center(child: Text('Unknown Index'));
     }

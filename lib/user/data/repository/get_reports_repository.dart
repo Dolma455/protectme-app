@@ -1,23 +1,17 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import '../data_source/get_reports_data_source.dart';
+import 'package:protectmee/user/data/data_source/get_reports_data_source.dart';
 import '../models/get_reports_model.dart';
 
-abstract class UserReportsRepository {
-  Future<List<ReportModel>> getUserReports(int userId);
-}
+class ReportRepository {
+  final ReportDataSource dataSource;
 
-class UserReportsRepositoryImpl implements UserReportsRepository {
-  final UserReportsDataSource dataSource;
+  ReportRepository({required this.dataSource});
 
-  UserReportsRepositoryImpl({required this.dataSource});
-
-  @override
-  Future<List<ReportModel>> getUserReports(int userId) async {
-    return await dataSource.getUserReports(userId);
+  Future<List<ReportModel>> getReports(int userId) async {
+    return await dataSource.getReports(userId);
   }
 }
 
-final userReportsRepositoryProvider = Provider<UserReportsRepository>((ref) {
-  return UserReportsRepositoryImpl(dataSource: ref.watch(userReportsDataSourceProvider));
+final reportRepositoryProvider = Provider<ReportRepository>((ref) {
+  return ReportRepository(dataSource: ref.watch(reportDataSourceProvider));
 });

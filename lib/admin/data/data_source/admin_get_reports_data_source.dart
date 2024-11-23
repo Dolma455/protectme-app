@@ -58,7 +58,7 @@ class AdminReportDataSourceImpl implements AdminReportDataSource {
   Future<void> markAsSolved(int id) async {
     await apiClient.request(
       path: '/markassolved/$id',
-      method: 'PUT', // Ensure this method is correct
+      method: 'POST', // Ensure this method is correct
     );
   }
 }

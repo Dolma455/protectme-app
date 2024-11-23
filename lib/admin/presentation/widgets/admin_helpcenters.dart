@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:protectmee/user/presentation/widgets/helpcenter_map.dart';
 import 'package:protectmee/utils/app_styles.dart';
 import '../../controller/admin_helpcenter_controller.dart';
 import '../../data/models/admin_helpcenter_model.dart';
@@ -15,51 +17,63 @@ class AdminHelpCenters extends ConsumerWidget {
     ref.read(adminHelpCenterControllerProvider.notifier).getHelpCenters();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Help Centers')),
       body: helpCenterState.when(
         data: (helpCenters) {
-          return ListView.builder(
-            itemCount: helpCenters.length,
-            itemBuilder: (context, index) {
-              final HelpCenterModel helpCenter = helpCenters[index];
-              return Card(
-                color: darkBlueColor.withOpacity(0.6), // Adjust the background color here
-                margin: const EdgeInsets.symmetric(vertical: 8),
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: ListTile(
-                    title: Text('${helpCenter.id}: ${helpCenter.fullName}', style: const TextStyle(fontWeight: FontWeight.bold)),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Email: ${helpCenter.email}'),
-                        Text('Phone Number: ${helpCenter.phoneNumber}'),
-                      ],
-                    ),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: Icon(Icons.edit, color: blueColor),
-                          onPressed: () {
-                            _showEditHelpCenterDialog(context, helpCenter, ref);
+          return Column(
+            children: [
+              Expanded(
+                flex: 1,
+                child: HelpCenterWidget(onLocationSelected: (value) {}),
+              ),
+              spacing1,
+              spacing1,
+              Text('Help Centers', style: headingStyle),
+              Expanded(
+                flex: 1,
+                child: ListView.builder(
+                  itemCount: helpCenters.length,
+                  itemBuilder: (context, index) {
+                    final HelpCenterModel helpCenter = helpCenters[index];
+                    return Card(
+                      color: darkBlueColor.withOpacity(0.6), // Adjust the background color here
+                      margin: const EdgeInsets.symmetric(vertical: 8),
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: ListTile(
+                          title: Text(' ${helpCenter.fullName}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                          subtitle: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(helpCenter.phoneNumber),
+                            ],
+                          ),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: Icon(Icons.edit, color: blueColor),
+                                onPressed: () {
+                                  _showEditHelpCenterDialog(context, helpCenter, ref);
+                                },
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.delete, color: Colors.red),
+                                onPressed: () {
+                                  _deleteHelpCenter(context, helpCenter, ref);
+                                },
+                              ),
+                            ],
+                          ),
+                          onTap: () {
+                            _showHelpCenterDetails(context, helpCenter);
                           },
                         ),
-                        IconButton(
-                          icon: const Icon(Icons.delete, color: Colors.red),
-                          onPressed: () {
-                            _deleteHelpCenter(context, helpCenter, ref);
-                          },
-                        ),
-                      ],
-                    ),
-                    onTap: () {
-                      _showHelpCenterDetails(context, helpCenter);
-                    },
-                  ),
+                      ),
+                    );
+                  },
                 ),
-              );
-            },
+              ),
+            ],
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -120,54 +134,55 @@ class AdminHelpCenters extends ConsumerWidget {
       context: context,
       builder: (context) => Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        child: Padding(
-          padding: const EdgeInsets.all(12.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(controller: fullNameController, decoration: const InputDecoration(labelText: 'Full Name')),
-              TextField(controller: addressController, decoration: const InputDecoration(labelText: 'Address')),
-              TextField(controller: emailController, decoration: const InputDecoration(labelText: 'Email')),
-              TextField(controller: phoneController, decoration: const InputDecoration(labelText: 'Phone Number')),
-              TextField(controller: passwordController, decoration: const InputDecoration(labelText: 'Password')),
-              TextField(controller: latitudeController, decoration: const InputDecoration(labelText: 'Latitude')),
-              TextField(controller: longitudeController, decoration: const InputDecoration(labelText: 'Longitude')),
-              
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                    child: const Text('Cancel'),
-                  ),
-                  TextButton(
-                    onPressed: () async {
-                      final newHelpCenter = HelpCenterModel(
-                        id: 0, // id will be auto-generated by the backend
-                        fullName: fullNameController.text,
-                        address: addressController.text,
-                        email: emailController.text,
-                        phoneNumber: phoneController.text,
-                        password: passwordController.text,
-                        latitude: double.tryParse(latitudeController.text) ?? 0.0,
-                        longitude: double.tryParse(longitudeController.text) ?? 0.0,
-                      );
-                      try {
-                        final message = await ref.read(adminHelpCenterControllerProvider.notifier).addHelpCenter(newHelpCenter);
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(controller: fullNameController, decoration: const InputDecoration(labelText: 'Full Name')),
+                TextField(controller: addressController, decoration: const InputDecoration(labelText: 'Address')),
+                TextField(controller: emailController, decoration: const InputDecoration(labelText: 'Email')),
+                TextField(controller: phoneController, decoration: const InputDecoration(labelText: 'Phone Number')),
+                TextField(controller: passwordController, decoration: const InputDecoration(labelText: 'Password')),
+                TextField(controller: latitudeController, decoration: const InputDecoration(labelText: 'Latitude')),
+                TextField(controller: longitudeController, decoration: const InputDecoration(labelText: 'Longitude')),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    TextButton(
+                      onPressed: () {
                         Navigator.of(context).pop();
-                      } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error adding help center: $e')));
-                      }
-                    },
-                    child: const Text('Add'),
-                  ),
-                ],
-              ),
-            ],
+                      },
+                      child: const Text('Cancel'),
+                    ),
+                    TextButton(
+                      onPressed: () async {
+                        final newHelpCenter = HelpCenterModel(
+                          id: 0, // id will be auto-generated by the backend
+                          fullName: fullNameController.text,
+                          address: addressController.text,
+                          email: emailController.text,
+                          phoneNumber: phoneController.text,
+                          password: passwordController.text,
+                          latitude: double.tryParse(latitudeController.text) ?? 0.0,
+                          longitude: double.tryParse(longitudeController.text) ?? 0.0,
+                        );
+                        try {
+                          final message = await ref.read(adminHelpCenterControllerProvider.notifier).addHelpCenter(newHelpCenter);
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+                          Navigator.of(context).pop();
+                        } catch (e) {
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error adding help center: $e')));
+                        }
+                      },
+                      child: const Text('Add'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -188,54 +203,55 @@ class AdminHelpCenters extends ConsumerWidget {
       context: context,
       builder: (context) => Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        child: Padding(
-          padding: const EdgeInsets.all(12.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(controller: fullNameController, decoration: const InputDecoration(labelText: 'Full Name')),
-              TextField(controller: addressController, decoration: const InputDecoration(labelText: 'Address')),
-              TextField(controller: emailController, decoration: const InputDecoration(labelText: 'Email')),
-              TextField(controller: phoneController, decoration: const InputDecoration(labelText: 'Phone Number')),
-              TextField(controller: passwordController, decoration: const InputDecoration(labelText: 'Password')),
-              TextField(controller: latitudeController, decoration: const InputDecoration(labelText: 'Latitude')),
-              TextField(controller: longitudeController, decoration: const InputDecoration(labelText: 'Longitude')),
-
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                    child: const Text('Cancel'),
-                  ),
-                  TextButton(
-                    onPressed: () async {
-                      final updatedHelpCenter = HelpCenterModel(
-                        id: helpCenter.id,
-                        fullName: fullNameController.text,
-                        address: addressController.text,
-                        email: emailController.text,
-                        phoneNumber: phoneController.text,
-                        password: passwordController.text,
-                        latitude: double.tryParse(latitudeController.text) ?? helpCenter.latitude,
-                        longitude: double.tryParse(longitudeController.text) ?? helpCenter.longitude,
-                      );
-                      try {
-                        final message = await ref.read(adminHelpCenterControllerProvider.notifier).updateHelpCenter(helpCenter.id, updatedHelpCenter);
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(controller: fullNameController, decoration: const InputDecoration(labelText: 'Full Name')),
+                TextField(controller: addressController, decoration: const InputDecoration(labelText: 'Address')),
+                TextField(controller: emailController, decoration: const InputDecoration(labelText: 'Email')),
+                TextField(controller: phoneController, decoration: const InputDecoration(labelText: 'Phone Number')),
+                TextField(controller: passwordController, decoration: const InputDecoration(labelText: 'Password')),
+                TextField(controller: latitudeController, decoration: const InputDecoration(labelText: 'Latitude')),
+                TextField(controller: longitudeController, decoration: const InputDecoration(labelText: 'Longitude')),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    TextButton(
+                      onPressed: () {
                         Navigator.of(context).pop();
-                      } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error updating help center: $e')));
-                      }
-                    },
-                    child: const Text('Save'),
-                  ),
-                ],
-              ),
-            ],
+                      },
+                      child: const Text('Cancel'),
+                    ),
+                    TextButton(
+                      onPressed: () async {
+                        final updatedHelpCenter = HelpCenterModel(
+                          id: helpCenter.id,
+                          fullName: fullNameController.text,
+                          address: addressController.text,
+                          email: emailController.text,
+                          phoneNumber: phoneController.text,
+                          password: passwordController.text,
+                          latitude: double.tryParse(latitudeController.text) ?? helpCenter.latitude,
+                          longitude: double.tryParse(longitudeController.text) ?? helpCenter.longitude,
+                        );
+                        try {
+                          final message = await ref.read(adminHelpCenterControllerProvider.notifier).updateHelpCenter(helpCenter.id, updatedHelpCenter);
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+                          Navigator.of(context).pop();
+                        } catch (e) {
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error updating help center: $e')));
+                        }
+                      },
+                      child: const Text('Save'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -250,5 +266,35 @@ class AdminHelpCenters extends ConsumerWidget {
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error deleting help center: $e')));
     }
+  }
+}
+
+class HelpCenterMap extends StatelessWidget {
+  final List<HelpCenterModel> helpCenters;
+  final ValueChanged<String> onLocationSelected;
+
+  const HelpCenterMap({super.key, required this.helpCenters, required this.onLocationSelected});
+
+  @override
+  Widget build(BuildContext context) {
+    return GoogleMap(
+      initialCameraPosition: const CameraPosition(
+        target: LatLng(27.7172, 85.3240), // Default to Kathmandu
+        zoom: 12,
+      ),
+      markers: helpCenters.map((helpCenter) {
+        return Marker(
+          markerId: MarkerId(helpCenter.id.toString()),
+          position: LatLng(helpCenter.latitude, helpCenter.longitude),
+          infoWindow: InfoWindow(
+            title: helpCenter.fullName,
+            snippet: helpCenter.address,
+          ),
+          onTap: () {
+            onLocationSelected(helpCenter.fullName);
+          },
+        );
+      }).toSet(),
+    );
   }
 }

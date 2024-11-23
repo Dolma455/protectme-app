@@ -9,6 +9,7 @@ class ReportModel {
   final String address;
   final String policeStation;
   final List<String> evidenceFilePath;
+  final String status; // Add the status field
 
   ReportModel({
     required this.id,
@@ -21,6 +22,7 @@ class ReportModel {
     required this.address,
     required this.policeStation,
     required this.evidenceFilePath,
+    required this.status, // Add the status field
   });
 
   factory ReportModel.fromJson(Map<String, dynamic> json) {
@@ -35,6 +37,7 @@ class ReportModel {
       address: json['address'],
       policeStation: json['policeStation'],
       evidenceFilePath: List<String>.from(json['evidenceFilePath']),
+      status: json['status'], // Add the status field
     );
   }
 
@@ -50,6 +53,7 @@ class ReportModel {
       'address': address,
       'policeStation': policeStation,
       'evidenceFilePath': evidenceFilePath,
+      'status': status, // Add the status field
     };
   }
 }

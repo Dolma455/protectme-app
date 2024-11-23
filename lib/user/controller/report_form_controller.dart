@@ -1,26 +1,25 @@
-import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/models/report_form_model.dart';
 import '../data/repository/report_form_repository.dart';
 
-class ReportNotifier extends StateNotifier<AsyncValue<ReportFormResponseModel?>> {
+class ReportFormController extends StateNotifier<AsyncValue<String>> {
   final ReportRepository reportRepository;
 
-  ReportNotifier({required this.reportRepository}) : super(const AsyncValue.data(null));
+  ReportFormController({required this.reportRepository}) : super(const AsyncValue.data(''));
 
-  Future<void> postReport(ReportFormModel reportModel) async {
+  Future<String> postReport(ReportFormModel reportModel) async {
     state = const AsyncValue.loading();
     try {
-      final result = await reportRepository.postReport(reportModel);
-      state = AsyncValue.data(result);
+      final message = await reportRepository.postReport(reportModel);
+      state = AsyncValue.data(message);
+      return message;
     } catch (e) {
-      state = AsyncValue.error(e.toString(), StackTrace.current);
+      state = AsyncValue.error(e, StackTrace.current);
+      return e.toString();
     }
   }
 }
 
-final reportNotifierProvider = StateNotifierProvider<ReportNotifier, AsyncValue<ReportFormResponseModel?>>((ref) {
-  return ReportNotifier(
-    reportRepository: ref.watch(reportRepositoryProvider),
-  );
+final reportFormControllerProvider = StateNotifierProvider<ReportFormController, AsyncValue<String>>((ref) {
+  return ReportFormController(reportRepository: ref.watch(reportRepositoryProvider));
 });

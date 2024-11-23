@@ -1,26 +1,16 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import '../data_source/report_form_data_source.dart';
+import 'package:protectmee/user/data/data_source/report_form_data_source.dart';
 import '../models/report_form_model.dart';
 
+class ReportRepository {
+  final ReportDataSource dataSource;
+  ReportRepository({required this.dataSource});
 
-abstract class ReportRepository {
-  Future<ReportFormResponseModel> postReport(ReportFormModel reportModel);
-}
-
-class ReportRepositoryImpl implements ReportRepository {
-  final ReportDataSource reportDataSource;
-
-  ReportRepositoryImpl({required this.reportDataSource});
-
-  @override
-  Future<ReportFormResponseModel> postReport(ReportFormModel reportModel) async {
-    return await reportDataSource.postReport(reportModel);
+  Future<String> postReport(ReportFormModel report) async {
+    return await dataSource.postReport(report);
   }
 }
 
 final reportRepositoryProvider = Provider<ReportRepository>((ref) {
-  return ReportRepositoryImpl(
-    reportDataSource: ref.watch(reportDataSourceProvider),
-  );
+  return ReportRepository(dataSource: ref.watch(reportDataSourceProvider));
 });

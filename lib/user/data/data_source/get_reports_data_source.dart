@@ -2,31 +2,31 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:protectmee/core/api_client.dart';
 import '../models/get_reports_model.dart';
 
-
-abstract class UserReportsDataSource {
-  Future<List<ReportModel>> getUserReports(int userId);
+abstract class ReportDataSource {
+  Future<List<ReportModel>> getReports(int userId);
 }
 
-class UserReportsDataSourceImpl implements UserReportsDataSource {
+class ReportDataSourceImpl implements ReportDataSource {
   final ApiClient apiClient;
 
-  UserReportsDataSourceImpl({required this.apiClient});
+  ReportDataSourceImpl({required this.apiClient});
 
   @override
-  Future<List<ReportModel>> getUserReports(int userId) async {
+  Future<List<ReportModel>> getReports(int userId) async {
     final result = await apiClient.request(
-      path: '/getreports/$userId',
+      path: '/getreports/user/$userId',
+      method: 'GET',
     );
     if (result is List) {
-      return result.map((e) => ReportModel.fromJson(e as Map<String, dynamic>)).toList();
+      return result.map((json) => ReportModel.fromJson(json)).toList();
     } else {
       throw Exception('Unexpected API response format');
     }
   }
 }
 
-final userReportsDataSourceProvider = Provider<UserReportsDataSource>((ref) {
-  return UserReportsDataSourceImpl(
+final reportDataSourceProvider = Provider<ReportDataSource>((ref) {
+  return ReportDataSourceImpl(
     apiClient: ref.watch(apiClientProvider),
   );
 });

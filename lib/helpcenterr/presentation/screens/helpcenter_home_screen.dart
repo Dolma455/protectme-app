@@ -1,21 +1,36 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:protectmee/auth/presentation/screens/profile.dart';
 import 'package:protectmee/helpcenterr/presentation/widgets/helpcenter_home.dart';
-import '../../../utils/app_styles.dart';
-import '../widgets/helpcenter_profile.dart';
-import '../widgets/helpcenter_reports.dart';
-import '../widgets/helpcenter_map.dart';
+import 'package:protectmee/user/presentation/widgets/helpcenter_map.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:protectmee/utils/app_styles.dart';
+import 'package:protectmee/helpcenterr/presentation/widgets/helpcenter_reports.dart';
 
-class HelpCenterHomeScreen extends StatefulWidget {
+
+class HelpCenterHomeScreen extends ConsumerStatefulWidget {
   const HelpCenterHomeScreen({super.key});
 
   @override
-  State<HelpCenterHomeScreen> createState() => _HomeScreenState();
+  _HelpCenterHomeScreenState createState() => _HelpCenterHomeScreenState();
 }
 
-class _HomeScreenState extends State<HelpCenterHomeScreen> {
+class _HelpCenterHomeScreenState extends ConsumerState<HelpCenterHomeScreen> {
   int _selectedIndex = 0;
- 
+  String helpCenterName = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadHelpCenterName();
+  }
+
+  Future<void> _loadHelpCenterName() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      helpCenterName = prefs.getString('helpCenterName') ?? 'LMN HelpCenter';
+    });
+  }
 
   void _onItemTapped(int index) {
     setState(() {
@@ -26,32 +41,10 @@ class _HomeScreenState extends State<HelpCenterHomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0E0E0E),
       appBar: AppBar(
-        title: const Text('ProtectMe'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications),
-            onPressed: () {
-             
-            },
-          ),
-        ],
+        title: const Text('Help Center Home'),
       ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                constraints: const BoxConstraints(maxWidth: 480),
-                child: _buildContent(),
-              ),
-            ),
-           
-          ],
-        ),
-      ),
+      body: _buildContent(),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
@@ -63,8 +56,8 @@ class _HomeScreenState extends State<HelpCenterHomeScreen> {
             label: 'Reports',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.people_outline),
-            label: 'Users',
+            icon: Icon(Icons.local_police_outlined),
+            label: 'HelpCenters',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person_outlined),
@@ -83,13 +76,13 @@ class _HomeScreenState extends State<HelpCenterHomeScreen> {
   Widget _buildContent() {
     switch (_selectedIndex) {
       case 0:
-        //return const HelpCenterHome();
+        return const HelpCenterHome();
       case 1:
-        return  const HelpCenterreports();
+        return HelpCenterReports(helpCenterName: helpCenterName);
       case 2:
-        return  HelpCenterMap(onLocationSelected: (String value) {  },);
+        return  HelpCenterWidget(onLocationSelected: (value) {});
       case 3:
-        return const ProfileWidget();
+        return const Profile();
       default:
         return const Center(child: Text('Unknown Index'));
     }

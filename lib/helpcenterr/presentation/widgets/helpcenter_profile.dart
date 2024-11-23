@@ -1,190 +1,255 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:protectmee/auth/presentation/screens/auth_screen.dart';
+import 'package:protectmee/admin/controller/admin_helpcenter_controller.dart';
+import 'package:protectmee/admin/data/models/admin_helpcenter_model.dart';
 import 'package:protectmee/utils/app_styles.dart';
 
-class HelpCenterProfile extends ConsumerStatefulWidget {
-  const HelpCenterProfile({super.key});
+
+class AdminHelpCenters extends ConsumerWidget {
+  const AdminHelpCenters({super.key});
 
   @override
-  _ProfileState createState() => _ProfileState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final helpCenterState = ref.watch(adminHelpCenterControllerProvider);
 
-class _ProfileState extends ConsumerState<HelpCenterProfile> {
-  bool _isViewDetailsExpanded = false;
-  bool _isManageContactsExpanded = false;
-  final TextEditingController numberController = TextEditingController();
-  String fullName = '';
-  String email = '';
-  String phoneNumber = '';
-  String address = '';
-  String role = '';
+    // Fetch help centers when the widget is first built
+    ref.read(adminHelpCenterControllerProvider.notifier).getHelpCenters();
 
-  @override
-  void initState() {
-    super.initState();
-    _loadUserDetails();
-  }
-
-  Future<void> _loadUserDetails() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      fullName = prefs.getString('fullName') ?? '';
-      email = prefs.getString('email') ?? '';
-      phoneNumber = prefs.getString('phoneNumber') ?? '';
-      address = prefs.getString('address') ?? '';
-      role = prefs.getString('role') ?? '';
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profile'),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16.0),
-        children: [
-          _buildExpandableCard(
-            title: 'View Details',
-            description: 'See your profile information',
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Name: $fullName'),
-                Text('Email: $email'),
-                Text('Phone Number: $phoneNumber'),
-                Text('Address: $address'),
-                Text('Role: $role'),
-              ],
-            ),
-            onTap: () {
-              setState(() {
-                _isViewDetailsExpanded = !_isViewDetailsExpanded;
-              });
-            },
-            isExpanded: _isViewDetailsExpanded,
-          ),
-          const SizedBox(height: 16),
-          _buildExpandableCard(
-            title: 'Manage Emergency Contacts',
-            description: 'Set your emergency contact numbers',
-            child: Column(
-              children: [
-                const Text('Set your emergency contact number:'),
-                const SizedBox(height: 10),
-                TextField(
-                  controller: numberController,
-                  decoration: const InputDecoration(
-                    labelText: 'Emergency Number',
-                    border: OutlineInputBorder(),
-                    prefixText: '+977 ', // Change this to your country code
+      appBar: AppBar(title: const Text('Help Centers')),
+      body: helpCenterState.when(
+        data: (helpCenters) {
+          return ListView.builder(
+            itemCount: helpCenters.length,
+            itemBuilder: (context, index) {
+              final HelpCenterModel helpCenter = helpCenters[index];
+              return Card(
+                color: darkBlueColor.withOpacity(0.6), // Adjust the background color here
+                margin: const EdgeInsets.symmetric(vertical: 8),
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: ListTile(
+                    title: Text(' ${helpCenter.fullName}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                    subtitle: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(helpCenter.email),
+                        Text(helpCenter.phoneNumber),
+                      ],
+                    ),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: Icon(Icons.edit, color: blueColor),
+                          onPressed: () {
+                            _showEditHelpCenterDialog(context, helpCenter, ref);
+                          },
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete, color: Colors.red),
+                          onPressed: () {
+                            _deleteHelpCenter(context, helpCenter, ref);
+                          },
+                        ),
+                      ],
+                    ),
+                    onTap: () {
+                      _showHelpCenterDetails(context, helpCenter);
+                    },
                   ),
-                  keyboardType: TextInputType.phone,
                 ),
-                const SizedBox(height: 10),
-                ElevatedButton(
-                  onPressed: () {
-                    // Add logic to save the number
-                    String emergencyNumber = numberController.text;
-                    print('Emergency Number Set: $emergencyNumber');
-                    // Optionally clear the text field after saving
-                    numberController.clear();
-                  },
-                  child: const Text('Save'),
-                ),
-              ],
-            ),
-            onTap: () {
-              setState(() {
-                _isManageContactsExpanded = !_isManageContactsExpanded;
-              });
+              );
             },
-            isExpanded: _isManageContactsExpanded,
-          ),
-          const SizedBox(height: 16),
-          _buildCard(
-            title: 'Logout',
-            description: 'Log out of your account',
-            onTap: () {
-              _logout(context);
-            },
-          ),
-        ],
+          );
+        },
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, stackTrace) {
+          print('Error Displaying Help Centers: $error'); // Add logging to check the error
+          return Center(child: Text('Error: $error'));
+        },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          _showAddHelpCenterDialog(context, ref);
+        },
+        backgroundColor: purpleColor,
+        child: const Icon(Icons.add),
       ),
     );
   }
 
-  Widget _buildExpandableCard({
-    required String title,
-    required String description,
-    required Widget child,
-    required VoidCallback onTap,
-    required bool isExpanded,
-  }) {
-    return Card(
-      color: darkBlueColor.withOpacity(0.6),
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      child: ExpansionTile(
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Text(description, style: TextStyle(color: Colors.grey[600])),
-        trailing: const Icon(Icons.arrow_drop_down), // Arrow icon for expansion
-        onExpansionChanged: (bool expanding) => onTap(),
-        children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: child,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCard({
-    required String title,
-    required String description,
-    required VoidCallback onTap,
-  }) {
-    return Card(
-      color: darkBlueColor.withOpacity(0.6),
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      child: ListTile(
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Text(description, style: TextStyle(color: Colors.grey[600])),
-        trailing: const Icon(Icons.arrow_forward_ios, size: 16), // Right arrow icon
-        onTap: onTap,
-      ),
-    );
-  }
-
-  void _logout(BuildContext context) {
+  // Show Help Center Details Dialog
+  void _showHelpCenterDetails(BuildContext context, HelpCenterModel helpCenter) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Logout Confirmation'),
-        content: const Text('Are you sure you want to log out?'),
-        actions: <Widget>[
+        title: Text('${helpCenter.id}: ${helpCenter.fullName}'),
+        content: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Full Name: ${helpCenter.fullName}'),
+            Text('Address: ${helpCenter.address}'),
+            Text('Email: ${helpCenter.email}'),
+            Text('Phone Number: ${helpCenter.phoneNumber}'),
+            Text('Latitude: ${helpCenter.latitude}'),
+            Text('Longitude: ${helpCenter.longitude}'),
+          ],
+        ),
+        actions: [
           TextButton(
-            onPressed: () {
-              Navigator.of(context).pop(); // Close the dialog
-            },
-            child: const Text('No'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop(); // Close the dialog
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (context) => const AuthScreen()),
-                (route) => false,
-              );
-            },
-            child: Text('Yes', style: TextStyle(color: blueColor)),
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
           ),
         ],
       ),
     );
+  }
+
+  // Show dialog to add Help Center
+  void _showAddHelpCenterDialog(BuildContext context, WidgetRef ref) {
+    final fullNameController = TextEditingController();
+    final addressController = TextEditingController();
+    final emailController = TextEditingController();
+    final phoneController = TextEditingController();
+    final passwordController = TextEditingController();
+    final latitudeController = TextEditingController();
+    final longitudeController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(controller: fullNameController, decoration: const InputDecoration(labelText: 'Full Name')),
+              TextField(controller: addressController, decoration: const InputDecoration(labelText: 'Address')),
+              TextField(controller: emailController, decoration: const InputDecoration(labelText: 'Email')),
+              TextField(controller: phoneController, decoration: const InputDecoration(labelText: 'Phone Number')),
+              TextField(controller: passwordController, decoration: const InputDecoration(labelText: 'Password')),
+              TextField(controller: latitudeController, decoration: const InputDecoration(labelText: 'Latitude')),
+              TextField(controller: longitudeController, decoration: const InputDecoration(labelText: 'Longitude')),
+              
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: const Text('Cancel'),
+                  ),
+                  TextButton(
+                    onPressed: () async {
+                      final newHelpCenter = HelpCenterModel(
+                        id: 0, // id will be auto-generated by the backend
+                        fullName: fullNameController.text,
+                        address: addressController.text,
+                        email: emailController.text,
+                        phoneNumber: phoneController.text,
+                        password: passwordController.text,
+                        latitude: double.tryParse(latitudeController.text) ?? 0.0,
+                        longitude: double.tryParse(longitudeController.text) ?? 0.0,
+                      );
+                      try {
+                        final message = await ref.read(adminHelpCenterControllerProvider.notifier).addHelpCenter(newHelpCenter);
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+                        Navigator.of(context).pop();
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error adding help center: $e')));
+                      }
+                    },
+                    child: const Text('Add'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Show dialog to edit Help Center details
+  void _showEditHelpCenterDialog(BuildContext context, HelpCenterModel helpCenter, WidgetRef ref) {
+    final fullNameController = TextEditingController(text: helpCenter.fullName);
+    final addressController = TextEditingController(text: helpCenter.address);
+    final emailController = TextEditingController(text: helpCenter.email);
+    final phoneController = TextEditingController(text: helpCenter.phoneNumber);
+    final passwordController = TextEditingController(text: helpCenter.password);
+    final latitudeController = TextEditingController(text: helpCenter.latitude.toString());
+    final longitudeController = TextEditingController(text: helpCenter.longitude.toString());
+
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(controller: fullNameController, decoration: const InputDecoration(labelText: 'Full Name')),
+              TextField(controller: addressController, decoration: const InputDecoration(labelText: 'Address')),
+              TextField(controller: emailController, decoration: const InputDecoration(labelText: 'Email')),
+              TextField(controller: phoneController, decoration: const InputDecoration(labelText: 'Phone Number')),
+              TextField(controller: passwordController, decoration: const InputDecoration(labelText: 'Password')),
+              TextField(controller: latitudeController, decoration: const InputDecoration(labelText: 'Latitude')),
+              TextField(controller: longitudeController, decoration: const InputDecoration(labelText: 'Longitude')),
+
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: const Text('Cancel'),
+                  ),
+                  TextButton(
+                    onPressed: () async {
+                      final updatedHelpCenter = HelpCenterModel(
+                        id: helpCenter.id,
+                        fullName: fullNameController.text,
+                        address: addressController.text,
+                        email: emailController.text,
+                        phoneNumber: phoneController.text,
+                        password: passwordController.text,
+                        latitude: double.tryParse(latitudeController.text) ?? helpCenter.latitude,
+                        longitude: double.tryParse(longitudeController.text) ?? helpCenter.longitude,
+                      );
+                      try {
+                        final message = await ref.read(adminHelpCenterControllerProvider.notifier).updateHelpCenter(helpCenter.id, updatedHelpCenter);
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+                        Navigator.of(context).pop();
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error updating help center: $e')));
+                      }
+                    },
+                    child: const Text('Save'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Delete Help Center
+  void _deleteHelpCenter(BuildContext context, HelpCenterModel helpCenter, WidgetRef ref) async {
+    try {
+      final message = await ref.read(adminHelpCenterControllerProvider.notifier).deleteHelpCenter(helpCenter.id);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error deleting help center: $e')));
+    }
   }
 }

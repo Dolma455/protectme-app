@@ -1,23 +1,25 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
+import 'package:protectmee/user/data/repository/get_reports_repository.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../data/models/get_reports_model.dart';
-import '../data/repository/get_reports_repository.dart';
 
-class ReportNotifier extends StateNotifier<AsyncValue<List<ReportModel>>> {
-  final UserReportsRepository repository;
+class ReportController extends StateNotifier<AsyncValue<List<ReportModel>>> {
+  final ReportRepository reportRepository;
 
-  ReportNotifier({required this.repository}) : super(const AsyncValue.loading());
+  ReportController({required this.reportRepository}) : super(const AsyncValue.loading());
 
-  Future<void> getReports(int userId) async {
+  Future<void> getReports() async {
     try {
-      final reports = await repository.getUserReports(userId);
+      final prefs = await SharedPreferences.getInstance();
+      final userId = prefs.getInt('userId') ?? 0; // Default to 0 if not found
+      final reports = await reportRepository.getReports(userId);
       state = AsyncValue.data(reports);
     } catch (e) {
-     // state = AsyncValue.error(e);
+      state = AsyncValue.error(e, StackTrace.current);
     }
   }
 }
 
-final reportNotifierProvider = StateNotifierProvider<ReportNotifier, AsyncValue<List<ReportModel>>>((ref) {
-  return ReportNotifier(repository: ref.watch(userReportsRepositoryProvider));
+final reportControllerProvider = StateNotifierProvider<ReportController, AsyncValue<List<ReportModel>>>((ref) {
+  return ReportController(reportRepository: ref.watch(reportRepositoryProvider));
 });

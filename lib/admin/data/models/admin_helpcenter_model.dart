@@ -27,8 +27,8 @@ class HelpCenterModel {
       email: json['email'],
       phoneNumber: json['phoneNumber'],
       password: json['password'],
-      latitude: json['latitude'],
-      longitude: json['longitude'],
+      latitude: (json['latitude'] as num).toDouble(),
+      longitude: (json['longitude'] as num).toDouble(),
     );
   }
 

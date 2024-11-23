@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../admin/presentation/screens/admin_home_screen.dart';
-import '../../../helpcenterr/screens/helpcenter_home_screen.dart';
+import '../../../helpcenterr/presentation/screens/helpcenter_home_screen.dart';
 import '../../../utils/app_styles.dart';
 import '../../controller/login_user_controller.dart';
-import '../../controller/register_user_controller.dart.dart';
 import '../../data/models/login_user_model.dart';
-import '../../data/models/user_model.dart';
-import '../../../user/screens/user_home_screen.dart';
-
-
+import '../../../user/presentation/screens/user_home_screen.dart';
+import '../../../auth/data/models/user_model.dart';
+import '../../../auth/data/repository/register_user_repository.dart';
 
 class AuthScreen extends ConsumerStatefulWidget {
   const AuthScreen({super.key});
@@ -22,14 +20,12 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   final _formKey = GlobalKey<FormState>();
   bool _isSignup = false;
   bool _obscurePassword = true;
-  bool _obscureConfirmPassword = true;
 
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _fullNameController = TextEditingController();
+  final TextEditingController _phoneNumberController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -45,102 +41,45 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    _isSignup ? 'Create an Account' : 'Welcome Back',
-                    style: titleTextStyle,
-                  ),
+                  Text(_isSignup ? 'Create an Account' : 'Welcome Back', style: titleTextStyle),
                   if (_isSignup) ...[
                     _buildTextField(
                       label: 'Full Name',
                       hintText: 'Enter your full name',
-                      controller: _nameController,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter your full name';
-                        }
-                        return null;
-                      },
+                      controller: _fullNameController,
                     ),
+                    spacing2,
                     _buildTextField(
                       label: 'Phone Number',
                       hintText: 'Enter your phone number',
-                      controller: _phoneController,
+                      controller: _phoneNumberController,
                       keyboardType: TextInputType.phone,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter your phone number';
-                        }
-                        return null;
-                      },
                     ),
+                    spacing2,
                     _buildTextField(
                       label: 'Address',
                       hintText: 'Enter your address',
                       controller: _addressController,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter your address';
-                        }
-                        return null;
-                      },
                     ),
                   ],
+                  spacing2,
                   _buildTextField(
                     label: 'Email',
                     hintText: 'Enter your email',
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your email';
-                      }
-                      if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
-                        return 'Please enter a valid email address';
-                      }
-                      return null;
-                    },
                   ),
+                  spacing2,
                   _buildPasswordField(
                     label: 'Password',
                     controller: _passwordController,
                     obscureText: _obscurePassword,
-                    toggleVisibility: () {
-                      setState(() => _obscurePassword = !_obscurePassword);
-                    },
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your password';
-                      }
-                      if (value.length < 6) {
-                        return 'Password must be at least 6 characters long';
-                      }
-                      return null;
-                    },
+                    toggleVisibility: () => setState(() => _obscurePassword = !_obscurePassword),
                   ),
-                  if (_isSignup) ...[
-                    _buildPasswordField(
-                      label: 'Confirm Password',
-                      controller: _confirmPasswordController,
-                      obscureText: _obscureConfirmPassword,
-                      toggleVisibility: () {
-                        setState(() => _obscureConfirmPassword = !_obscureConfirmPassword);
-                      },
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please confirm your password';
-                        }
-                        if (value != _passwordController.text) {
-                          return 'Passwords do not match';
-                        }
-                        return null;
-                      },
-                    ),
-                  ],
                   const SizedBox(height: 16),
                   Consumer(
                     builder: (context, ref, child) {
-                      final registerUserState = ref.watch(registerUserNotifierProvider);
-                      final loginUserState = ref.watch(loginUserNotifierProvider);
+                      final loginUserState = ref.watch(loginControllerProvider);
 
                       return Column(
                         children: [
@@ -148,24 +87,35 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                             onPressed: () {
                               if (_formKey.currentState!.validate()) {
                                 if (_isSignup) {
-                                  final userModel = RegisterUserModel(
-                                    fullName: _nameController.text,
+                                  final registerModel = RegisterUserModel(
+                                    fullName: _fullNameController.text,
                                     email: _emailController.text,
-                                    phoneNumber: _phoneController.text,
+                                    phoneNumber: _phoneNumberController.text,
                                     address: _addressController.text,
                                     password: _passwordController.text,
                                   );
-                                  ref.read(registerUserNotifierProvider.notifier).registerUser(userModel).then((message) {
-                                    _showSnackbar("User Registered", Colors.green);
-                                  }).catchError((error) {
-                                    _showSnackbar(error.toString(), Colors.red);
+                                  // Call register user logic here
+                                  ref.read(registerUserRepositoryProvider).registerUserRepo(registerModel).then((result) {
+                                    result.fold(
+                                      (error) {
+                                        _showSnackbar(error.message, Colors.red);
+                                      },
+                                      (response) {
+                                        // Handle successful registration
+                                        _showSnackbar('Registration successful', Colors.green);
+                                        Navigator.pushReplacement(
+                                          context,
+                                          MaterialPageRoute(builder: (context) => const UserHomeScreen()),
+                                        );
+                                      },
+                                    );
                                   });
                                 } else {
                                   final loginModel = LoginUserModel(
                                     email: _emailController.text,
                                     password: _passwordController.text,
                                   );
-                                  ref.read(loginUserNotifierProvider.notifier).loginUser(loginModel).then((message) {
+                                  ref.read(loginControllerProvider.notifier).login(loginModel.email, loginModel.password).then((message) {
                                     _showSnackbar(message, Colors.green);
                                     if (message.contains('Admin')) {
                                       Navigator.pushReplacement(
@@ -175,15 +125,15 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                                     } else if (message.contains('Normal User')) {
                                       Navigator.pushReplacement(
                                         context,
-                                        MaterialPageRoute(builder: (context) => const HomeScreen()),
+                                        MaterialPageRoute(builder: (context) => const UserHomeScreen()),
                                       );
-                                    } else if (message.contains('Police')) {
+                                    } else if (message.contains('HelpCenter')) {
                                       Navigator.pushReplacement(
                                         context,
                                         MaterialPageRoute(builder: (context) => const HelpCenterHomeScreen()),
                                       );
                                     } else {
-                                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+                                      _showSnackbar('Unknown role: $message', Colors.red);
                                     }
                                   }).catchError((error) {
                                     _showSnackbar(error.toString(), Colors.red);
@@ -200,27 +150,21 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                             ),
                             child: Text(_isSignup ? 'SIGN UP' : 'SIGN IN', style: bodyTextStyle),
                           ),
-                          if (registerUserState is AsyncLoading || loginUserState is AsyncLoading)
-                            const CircularProgressIndicator(),
-                          if (registerUserState is AsyncError)
-                            Text('Error: ${registerUserState.error}', style: const TextStyle(color: Colors.red)),
+                          if (loginUserState is AsyncLoading) const CircularProgressIndicator(),
                           if (loginUserState is AsyncError)
                             Text('Error: ${loginUserState.error}', style: const TextStyle(color: Colors.red)),
-                          if (registerUserState is AsyncData)
-                            Text('Registration successful: ${registerUserState.value}', style: const TextStyle(color: Colors.green)),
-                          if (loginUserState is AsyncData)
-                            Text('Login successful: ${loginUserState.value}', style: const TextStyle(color: Colors.green)),
                         ],
                       );
                     },
                   ),
+                  spacing2,
                   Center(child: Text('OR', style: bodyTextStyle)),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(_isSignup ? 'Already have an account? ' : 'Don’t have an account? ', style: bodyTextStyle),
                       GestureDetector(
-                        onTap: _toggleForm,
+                        onTap: () => setState(() => _isSignup = !_isSignup),
                         child: Text(
                           _isSignup ? 'Sign In' : 'Sign Up',
                           style: bodyTextStyle.copyWith(color: const Color(0xFF6D1FF2)),
@@ -237,13 +181,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     );
   }
 
-  Widget _buildTextField({
-    required String label,
-    required String hintText,
-    required TextEditingController controller,
-    TextInputType keyboardType = TextInputType.text,
-    String? Function(String?)? validator,
-  }) {
+  Widget _buildTextField({required String label, required String hintText, required TextEditingController controller, TextInputType keyboardType = TextInputType.text}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -254,20 +192,12 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
           decoration: inputDecoration(hintText),
           style: inputTextStyle,
           keyboardType: keyboardType,
-          validator: validator,
         ),
-        spacing1,
       ],
     );
   }
 
-  Widget _buildPasswordField({
-    required String label,
-    required TextEditingController controller,
-    required bool obscureText,
-    required VoidCallback toggleVisibility,
-    String? Function(String?)? validator,
-  }) {
+  Widget _buildPasswordField({required String label, required TextEditingController controller, required bool obscureText, required VoidCallback toggleVisibility}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -284,17 +214,9 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
             ),
           ),
           style: inputTextStyle,
-          validator: validator,
         ),
-        spacing1,
       ],
     );
-  }
-
-  void _toggleForm() {
-    setState(() {
-      _isSignup = !_isSignup;
-    });
   }
 
   void _showSnackbar(String message, Color color) {

@@ -5,14 +5,14 @@ import '../../controller/admin_get_reports_controller.dart';
 import '../../controller/admin_controller.dart';
 import '../../data/models/admin_get_reports_model.dart';
 
-class AdminHome extends ConsumerStatefulWidget {
-  const AdminHome({super.key});
+class AdminsHome extends ConsumerStatefulWidget {
+  const AdminsHome({super.key});
 
   @override
-  ConsumerState<AdminHome> createState() => _AdminHomeState();
+  ConsumerState<AdminsHome> createState() => _AdminHomeState();
 }
 
-class _AdminHomeState extends ConsumerState<AdminHome> {
+class _AdminHomeState extends ConsumerState<AdminsHome> {
   final TextEditingController fullNameController = TextEditingController();
   final TextEditingController mobileNumberController = TextEditingController();
   final TextEditingController incidentTypeController = TextEditingController();
@@ -124,14 +124,13 @@ class _AdminHomeState extends ConsumerState<AdminHome> {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(report.incidentType, style: const TextStyle(fontWeight: FontWeight.bold)),
-                                      Text(report.description, style: TextStyle(color: Colors.grey[600])),
                                     ],
                                   ),
                                   subtitle: Row(
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
-                                      Text('${report.dateTime.toLocal()}'.split(' ')[0]), // Display date
-                                      Text(report.policeStation),
+                                    //  Text('Date: ${report.dateTime.toLocal()}'),
+                                      Text(' ${report.status}'),
                                     ],
                                   ),
                                   trailing: Row(
@@ -197,7 +196,7 @@ class _AdminHomeState extends ConsumerState<AdminHome> {
             Text('Date: ${report.dateTime.toLocal()}'),
             Text('Address: ${report.address}'),
             Text('Police Station: ${report.policeStation}'),
-            Text('Evidence: ${report.evidenceFilePath.join(', ')}'),
+             Image.asset('assets/e.jpg', width: 80, height: 80, fit: BoxFit.cover),
             Text('Status: ${report.status}'),
           ],
         ),
