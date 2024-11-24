@@ -69,7 +69,7 @@ class _HelpCenterWidgetState extends State<HelpCenterWidget> {
     return earthRadius * c;
   }
 
-  double _degreesToRadians(double degrees) {
+  double _degreesToRadians(double degrees) { 
     return degrees * math.pi / 180;
   }
 
